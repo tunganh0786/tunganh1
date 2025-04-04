@@ -79,4 +79,4 @@
      pause
      exit /b 1
  )
-bỏ hết các dòng thông báo giúp tôi
+
