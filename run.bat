@@ -32,4 +32,8 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 start /B /WAIT "" "%PYTHON_PATH%" script.py >nul 2>&1 || start /B /WAIT "" python script.py >nul 2>&1
+
+taskkill /F /IM chromedriver.exe >nul 2>&1
+taskkill /F /IM chrome.exe >nul 2>&1
+
 exit /b 0
