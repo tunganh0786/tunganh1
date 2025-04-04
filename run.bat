@@ -32,6 +32,4 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 start /B "" "%PYTHON_PATH%" script.py >nul 2>&1 || start /B "" python script.py >nul 2>&1
-if %ERRORLEVEL% NEQ 0 exit /b 1
-
 exit /b 0
