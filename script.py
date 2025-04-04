@@ -43,6 +43,8 @@ def get_cookies(profile_name):
     chrome_options.add_argument("--disable-logging")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--silent")
+    chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
     driver = None
     try:
         service = Service(ChromeDriverManager().install())
