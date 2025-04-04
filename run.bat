@@ -21,23 +21,30 @@
  )
  
  :: Verify Chocolatey is working
+ 
  "%CHOCO_PATH%\choco.exe" -v >nul 2>&1
  if %ERRORLEVEL% NEQ 0 (
      echo Chocolatey is installed but not functioning correctly. Please restart your shell or check installation.
+     
  ) else (
      echo Chocolatey version check successful.
+    
  )
  
  :: Check if Python is installed (try python --version or default Chocolatey install path)
+ 
  set "PYTHON_PATH=C:\Python313\python.exe"
  "%PYTHON_PATH%" --version >nul 2>&1 || python --version >nul 2>&1
  if %ERRORLEVEL% NEQ 0 (
      echo Python not found. Installing Python via Chocolatey...
+    
      "%CHOCO_PATH%\choco.exe" install python -y
      if %ERRORLEVEL% EQU 3010 (
          echo Python installed successfully, but a reboot is recommended.
+         
      ) else if %ERRORLEVEL% NEQ 0 (
          echo Failed to install Python with unexpected error. Exiting...
+     
          pause
          exit /b 1
      )
@@ -72,4 +79,3 @@
      pause
      exit /b 1
  )
- pause
